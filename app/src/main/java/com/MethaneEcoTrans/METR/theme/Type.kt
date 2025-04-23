@@ -1,4 +1,4 @@
-package com.example.met.ui.theme
+package com.MethaneEcoTrans.METR.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

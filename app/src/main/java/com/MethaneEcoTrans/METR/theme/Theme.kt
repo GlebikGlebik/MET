@@ -1,6 +1,5 @@
-package com.example.met.ui.theme
+package com.MethaneEcoTrans.METR.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
