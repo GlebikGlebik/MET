@@ -64,4 +64,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.12.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("androidx.navigation:navigation-compose:2.8.9")
+    implementation("com.sun.mail:android-activation:1.2.7")
+    implementation("com.sun.mail:android-mail:1.6.2")
+    //implementation("javax.mail:javax.mail-api:1.6.2")
 }

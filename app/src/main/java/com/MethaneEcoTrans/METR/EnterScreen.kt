@@ -50,7 +50,9 @@ fun EnterScreen(navController: NavController) {
 
         //отслеживание состояний
         var password by remember { mutableStateOf("") }
-        var isFocused by remember { mutableStateOf(false) }
+        var email by remember { mutableStateOf("") }
+        var isFocusedEmail by remember { mutableStateOf(false) }
+        var isFocusedPassword by remember { mutableStateOf(false) }
 
         Box(
             modifier = Modifier
@@ -72,7 +74,7 @@ fun EnterScreen(navController: NavController) {
             //  поле для ввода e-mail
             Box(
                 modifier = Modifier
-                    .requiredSize(boxWidth, boxHeight)
+                    .fillMaxSize()
                     .padding(
                         top = boxHeight / 11 * 4 + 5.dp,
                         start = boxWidth / 11,
@@ -82,19 +84,49 @@ fun EnterScreen(navController: NavController) {
                     )
                     .background(CustomEnterBarColor, shape = RoundedCornerShape(10.dp))
             ) {
-                Text(
-                    text = "e-mail/телефон",
+                //плейсхолдер
+                if(email.isEmpty() && !isFocusedEmail){
+                    Text(
+                        text = "e-mail",
+                        modifier = Modifier
+                            .alpha(0.5f)
+                            .align(Alignment.Center)
+                            .padding(
+                                start = 5.dp,
+                                end = 121.dp
+                            ),
+                        color = CustomGrey,
+                        fontFamily = segoe_ui_enter_screen,
+                        fontSize = 12.sp,
+                    )
+                }
+                BasicTextField(
                     modifier = Modifier
-                        .alpha(0.5f)
+                        .fillMaxSize()
                         .padding(
                             start = 5.dp,
-                            top = 5.dp
-                        ),
-                    color = CustomGrey,
-                    fontFamily = segoe_ui_enter_screen,
-                    fontSize = 12.sp
+                            top = 10.dp,
+                            end = 5.dp
+                        )
+                        .align(Alignment.Center)
+                        .onFocusChanged { focusState -> isFocusedEmail = focusState.isFocused },
+                    value = email,
+                    onValueChange = { newText ->
+                        // Ограничиваем длину пароля до 14 символов
+                        if (newText.length <= 24) {
+                            email = newText
+                        }
+                    },
+                    textStyle = TextStyle(
+                        color = CustomGrey,
+                        fontSize = 12.sp
+                    ),
+                    cursorBrush = Brush.verticalGradient(
+                        colors = listOf(CustomGrey.copy(alpha = 0.5f), CustomGrey.copy(alpha = 0.5f)),
+                        startY = 0f,
+                        endY = 12f
+                    )
                 )
-
             }
             // поле дял ввода пароля
             Box(
@@ -109,7 +141,7 @@ fun EnterScreen(navController: NavController) {
                     .background(CustomEnterBarColor, shape = RoundedCornerShape(10.dp)),
             ){
                 // плейсхолдер
-                if (password.isEmpty() && !isFocused){
+                if (password.isEmpty() && !isFocusedPassword){
                     Text(
                         text = "пароль",
                         modifier = Modifier
@@ -123,6 +155,7 @@ fun EnterScreen(navController: NavController) {
                         fontFamily = segoe_ui_enter_screen,
                         fontSize = 12.sp,
                     )
+
                 }
                 // сам ввод пароля
                 BasicTextField(
@@ -134,7 +167,7 @@ fun EnterScreen(navController: NavController) {
                             end = 5.dp
                         )
                         .align(Alignment.Center)
-                        .onFocusChanged { focusState -> isFocused = focusState.isFocused },
+                        .onFocusChanged { focusState -> isFocusedPassword = focusState.isFocused },
                     value = password,
                     onValueChange = { newText ->
                         // Ограничиваем длину пароля до 14 символов
