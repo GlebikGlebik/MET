@@ -187,10 +187,7 @@ fun RegistrationScreen(navController: NavController) {
                 Text(
                     text = "Регистрация",
                     modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(
-                            top = 5.dp
-                        ),
+                        .align(Alignment.Center),
                     color = CustomTrafficWhite,
                     fontFamily = segoe_ui,
                     fontSize = 16.sp
@@ -201,7 +198,6 @@ fun RegistrationScreen(navController: NavController) {
             Box(
                 modifier = Modifier
                     .requiredSize(boxWidth, boxHeight)
-                    .clickable {navController.navigate("EnterScreen")}
                     .padding(
                         top = boxHeight / 11 * 9 + 5.dp,
                         start = boxWidth / 11,
@@ -215,9 +211,7 @@ fun RegistrationScreen(navController: NavController) {
                     text = "Вход",
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .padding(
-                            top = 5.dp
-                        ),
+                        .clickable {navController.navigate("EnterScreen")},
                     color = CustomTrafficWhite,
                     fontFamily = segoe_ui,
                     fontSize = 16.sp

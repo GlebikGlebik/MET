@@ -1,8 +1,7 @@
 package com.MethaneEcoTrans.METR
 
 
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -10,18 +9,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.requiredSize
-import androidx.compose.ui.Alignment
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.ui.draw.alpha
 import androidx.compose.foundation.clickable
 import androidx.navigation.NavController
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.focus.onFocusChanged
 import com.MethaneEcoTrans.METR.theme.CustomTurquoiseBlue
 import com.MethaneEcoTrans.METR.theme.CustomTrafficWhite
 import com.MethaneEcoTrans.METR.theme.CustomCarpiBlue
@@ -38,13 +38,19 @@ val segoe_ui_enter_screen = FontFamily(
 
 @Composable
 fun EnterScreen(navController: NavController) {
-    BoxWithConstraints(modifier = Modifier
+    BoxWithConstraints(
+        modifier = Modifier
             .fillMaxSize()
-            .background(CustomTurquoiseBlue)) {
+            .background(CustomTurquoiseBlue)
+    ) {
 
         // Получаем размеры внутреннего экрана, которые равняются половине экрана
         val boxWidth = this.maxWidth * 0.5f
         val boxHeight = this.maxHeight * 0.5f
+
+        //отслеживание состояний
+        var password by remember { mutableStateOf("") }
+        var isFocused by remember { mutableStateOf(false) }
 
         Box(
             modifier = Modifier
@@ -52,7 +58,7 @@ fun EnterScreen(navController: NavController) {
                 .align(Alignment.Center)
                 // Устанавливаем цвет и скругление
                 .background(CustomTrafficWhite, shape = RoundedCornerShape(15.dp))
-        ){
+        ) {
             Text(
                 text = "Вход",
                 modifier = Modifier
@@ -75,7 +81,7 @@ fun EnterScreen(navController: NavController) {
 
                     )
                     .background(CustomEnterBarColor, shape = RoundedCornerShape(10.dp))
-            ){
+            ) {
                 Text(
                     text = "e-mail/телефон",
                     modifier = Modifier
@@ -93,30 +99,61 @@ fun EnterScreen(navController: NavController) {
             // поле дял ввода пароля
             Box(
                 modifier = Modifier
-                    .requiredSize(boxWidth, boxHeight)
+                    .fillMaxSize()
                     .padding(
                         top = boxHeight / 11 * 5 + 5.dp,
                         start = boxWidth / 11,
                         end = boxWidth / 11,
                         bottom = boxHeight / 11 * 5 + 5.dp
-
                     )
-                    .background(CustomEnterBarColor, shape = RoundedCornerShape(10.dp))
+                    .background(CustomEnterBarColor, shape = RoundedCornerShape(10.dp)),
             ){
-                Text(
-                    text = "пароль",
+                // плейсхолдер
+                if (password.isEmpty() && !isFocused){
+                    Text(
+                        text = "пароль",
+                        modifier = Modifier
+                            .alpha(0.5f)
+                            .align(Alignment.Center)
+                            .padding(
+                                start = 5.dp,
+                                end = 115.dp
+                            ),
+                        color = CustomGrey,
+                        fontFamily = segoe_ui_enter_screen,
+                        fontSize = 12.sp,
+                    )
+                }
+                // сам ввод пароля
+                BasicTextField(
                     modifier = Modifier
-                        .alpha(0.5f)
+                        .fillMaxSize()
                         .padding(
                             start = 5.dp,
-                            top = 5.dp
-                        ),
-                    color = CustomGrey,
-                    fontFamily = segoe_ui_enter_screen,
-                    fontSize = 12.sp
+                            top = 10.dp,
+                            end = 5.dp
+                        )
+                        .align(Alignment.Center)
+                        .onFocusChanged { focusState -> isFocused = focusState.isFocused },
+                    value = password,
+                    onValueChange = { newText ->
+                        // Ограничиваем длину пароля до 14 символов
+                        if (newText.length <= 24) {
+                            password = newText
+                        }
+                    },
+                    textStyle = TextStyle(
+                        color = CustomGrey,
+                        fontSize = 12.sp
+                    ),
+                    cursorBrush = Brush.verticalGradient(
+                        colors = listOf(CustomGrey.copy(alpha = 0.5f), CustomGrey.copy(alpha = 0.5f)),
+                        startY = 0f,
+                        endY = 12f
+                    )
                 )
-
             }
+
             //Кнопка вход
             Box(
                 modifier = Modifier
@@ -129,14 +166,11 @@ fun EnterScreen(navController: NavController) {
 
                     )
                     .background(CustomCarpiBlue, shape = RoundedCornerShape(10.dp))
-            ){
+            ) {
                 Text(
                     text = "Вход",
                     modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(
-                            top = 5.dp
-                        ),
+                        .align(Alignment.Center),
                     color = CustomTrafficWhite,
                     fontFamily = segoe_ui_enter_screen,
                     fontSize = 18.sp
@@ -147,7 +181,6 @@ fun EnterScreen(navController: NavController) {
             Box(
                 modifier = Modifier
                     .requiredSize(boxWidth, boxHeight)
-                    .clickable{navController.navigate("RegistrationScreen")}
                     .padding(
                         top = boxHeight / 11 * 8 + 5.dp,
                         start = boxWidth / 11,
@@ -156,14 +189,12 @@ fun EnterScreen(navController: NavController) {
 
                     )
                     .background(CustomCarpiBlue, shape = RoundedCornerShape(10.dp))
-            ){
+            ) {
                 Text(
                     text = "Регистрация",
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .padding(
-                            top = 5.dp
-                        ),
+                        .clickable { navController.navigate("RegistrationScreen") },
                     color = CustomTrafficWhite,
                     fontFamily = segoe_ui_enter_screen,
                     fontSize = 18.sp
