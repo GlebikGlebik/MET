@@ -8,6 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import com.MethaneEcoTrans.METR.theme.METTheme
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.google.firebase.auth.ActionCodeSettings
 
 
 class MainActivity : ComponentActivity(){
@@ -25,5 +26,6 @@ class MainActivity : ComponentActivity(){
             }
         }
     }
+
 }
 

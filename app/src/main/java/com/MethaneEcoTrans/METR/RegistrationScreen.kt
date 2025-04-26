@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.TextStyle
 import android.util.Patterns
 import androidx.compose.foundation.layout.offset
+import android.util.Log
 import com.MethaneEcoTrans.METR.theme.CustomTurquoiseBlue
 import com.MethaneEcoTrans.METR.theme.CustomTrafficWhite
 import com.MethaneEcoTrans.METR.theme.CustomCarpiBlue
@@ -81,14 +82,35 @@ fun RegistrationScreen(navController: NavController) {
             return Patterns.EMAIL_ADDRESS.matcher(email).matches()
         }
 
+        // Флаг для отображения RegistrationActivity
+        var showRegistrationActivity by remember { mutableStateOf(false) }
+
         // Обработчик нажатия на кнопку регистрации
         fun onRegisterClick() {
             emailError = !isEmailValid(email)
             emptyFieldsError = name.isEmpty() || surname.isEmpty() || email.isEmpty() || password.isEmpty()
 
             if (!emailError && !emptyFieldsError) {
-                navController.navigate("NextScreen")
+                showRegistrationActivity = true
             }
+        }
+
+        // Если нужно показать RegistrationActivity, вызываем её
+        if (showRegistrationActivity) {
+            RegisterActivity(
+                email = email,
+                password = password,
+                onRegistrationSuccess = { user ->
+                    // Перейти на следующий экран после успешной регистрации
+                    navController.navigate("NextScreen")
+                    showRegistrationActivity = false // Сброс состояния
+                },
+                onRegistrationFailure = { errorMessage ->
+                    // Обработка ошибки регистрации
+                    Log.e("RegistrationScreen", errorMessage)
+                    showRegistrationActivity = false // Сброс состояния
+                }
+            )
         }
 
         // Уведомление некорректный email
