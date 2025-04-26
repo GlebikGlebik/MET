@@ -8,14 +8,6 @@ import androidx.navigation.compose.rememberNavController
 import com.MethaneEcoTrans.METR.theme.METTheme
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import androidx.compose.foundation.clickable
-import com.MethaneEcoTrans.METR.theme.CustomTurquoiseBlue
-import com.MethaneEcoTrans.METR.theme.CustomTrafficWhite
-import com.MethaneEcoTrans.METR.theme.CustomCarpiBlue
-import com.MethaneEcoTrans.METR.theme.CustomEnterBarColor
-import com.MethaneEcoTrans.METR.theme.CustomGrey
 
 
 class MainActivity : ComponentActivity(){

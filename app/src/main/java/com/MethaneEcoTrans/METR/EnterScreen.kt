@@ -18,7 +18,6 @@ import androidx.navigation.NavController
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.focus.onFocusChanged
@@ -58,7 +57,6 @@ fun EnterScreen(navController: NavController) {
             modifier = Modifier
                 .requiredSize(boxWidth, boxHeight)
                 .align(Alignment.Center)
-                // Устанавливаем цвет и скругление
                 .background(CustomTrafficWhite, shape = RoundedCornerShape(15.dp))
         ) {
             Text(

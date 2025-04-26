@@ -87,8 +87,7 @@ fun RegistrationScreen(navController: NavController) {
             emptyFieldsError = name.isEmpty() || surname.isEmpty() || email.isEmpty() || password.isEmpty()
 
             if (!emailError && !emptyFieldsError) {
-                // Здесь вы можете добавить логику для отправки данных на сервер
-                navController.navigate("NextScreen") // Переход на следующий экран
+                navController.navigate("NextScreen")
             }
         }
 

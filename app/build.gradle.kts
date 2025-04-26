@@ -56,15 +56,11 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation(platform("com.google.firebase:firebase-bom:33.12.0"))
-    implementation("com.google.firebase:firebase-analytics")
-    implementation(platform("com.google.firebase:firebase-bom:33.12.0"))
-    implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.android.gms:play-services-auth:21.3.0")
-    implementation(platform("com.google.firebase:firebase-bom:33.12.0"))
-    implementation("com.google.firebase:firebase-auth")
+    // базовые
+    implementation("androidx.navigation:navigation-fragment-ktx:2.8.9")
+    implementation("androidx.navigation:navigation-ui-ktx:2.8.9")
+    implementation("androidx.compose.ui:ui:1.8.0")
+    implementation("androidx.compose.material:material:1.8.0")
     implementation("androidx.navigation:navigation-compose:2.8.9")
-    implementation("com.sun.mail:android-activation:1.2.7")
-    implementation("com.sun.mail:android-mail:1.6.2")
-    //implementation("javax.mail:javax.mail-api:1.6.2")
+
 }
