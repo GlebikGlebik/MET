@@ -39,15 +39,6 @@ import com.MethaneEcoTrans.METR.theme.CustomEnterBarColor
 import com.MethaneEcoTrans.METR.theme.CustomGrey
 import com.MethaneEcoTrans.METR.theme.CustomErrorBarBackgroundColor
 
-
-val segoe_ui_bold = FontFamily(
-    Font(R.font.segoe_ui_bold)
-)
-
-val segoe_ui = FontFamily(
-    Font(R.font.segoe_ui)
-)
-
 @Composable
 fun RegistrationScreen(navController: NavController) {
     BoxWithConstraints(
@@ -238,7 +229,7 @@ fun RegistrationScreen(navController: NavController) {
                                 end = 104.dp
                             ),
                         color = CustomGrey,
-                        fontFamily = segoe_ui_enter_screen,
+                        fontFamily = segoe_ui,
                         fontSize = 12.sp,
                     )
                 }
@@ -298,7 +289,7 @@ fun RegistrationScreen(navController: NavController) {
                                 end = 135.dp
                             ),
                         color = CustomGrey,
-                        fontFamily = segoe_ui_enter_screen,
+                        fontFamily = segoe_ui,
                         fontSize = 12.sp,
                     )
                 }
@@ -358,7 +349,7 @@ fun RegistrationScreen(navController: NavController) {
                                 end = 121.dp
                             ),
                         color = CustomGrey,
-                        fontFamily = segoe_ui_enter_screen,
+                        fontFamily = segoe_ui,
                         fontSize = 12.sp,
                     )
                 }
@@ -417,7 +408,7 @@ fun RegistrationScreen(navController: NavController) {
                                 end = 115.dp
                             ),
                         color = CustomGrey,
-                        fontFamily = segoe_ui_enter_screen,
+                        fontFamily = segoe_ui,
                         fontSize = 12.sp,
                     )
 

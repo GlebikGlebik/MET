@@ -27,14 +27,6 @@ import com.MethaneEcoTrans.METR.theme.CustomCarpiBlue
 import com.MethaneEcoTrans.METR.theme.CustomEnterBarColor
 import com.MethaneEcoTrans.METR.theme.CustomGrey
 
-val segoe_ui_bold_enter_screen = FontFamily(
-    Font(R.font.segoe_ui_bold)
-)
-
-val segoe_ui_enter_screen = FontFamily(
-    Font(R.font.segoe_ui)
-)
-
 @Composable
 fun EnterScreen(navController: NavController) {
     BoxWithConstraints(
@@ -65,7 +57,7 @@ fun EnterScreen(navController: NavController) {
                     .padding(top = boxHeight / 11 * 2)
                     .fillMaxWidth(),
                 textAlign = TextAlign.Center,
-                fontFamily = segoe_ui_bold_enter_screen,
+                fontFamily = segoe_ui_bold,
                 color = CustomCarpiBlue,
                 fontSize = 24.sp
             )
@@ -94,7 +86,7 @@ fun EnterScreen(navController: NavController) {
                                 end = 121.dp
                             ),
                         color = CustomGrey,
-                        fontFamily = segoe_ui_enter_screen,
+                        fontFamily = segoe_ui,
                         fontSize = 12.sp,
                     )
                 }
@@ -150,7 +142,7 @@ fun EnterScreen(navController: NavController) {
                                 end = 115.dp
                             ),
                         color = CustomGrey,
-                        fontFamily = segoe_ui_enter_screen,
+                        fontFamily = segoe_ui,
                         fontSize = 12.sp,
                     )
 
@@ -203,7 +195,7 @@ fun EnterScreen(navController: NavController) {
                     modifier = Modifier
                         .align(Alignment.Center),
                     color = CustomTrafficWhite,
-                    fontFamily = segoe_ui_enter_screen,
+                    fontFamily = segoe_ui,
                     fontSize = 18.sp
                 )
 
@@ -225,9 +217,9 @@ fun EnterScreen(navController: NavController) {
                     text = "Регистрация",
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .clickable { navController.navigate("RegistrationScreen") },
+                        .clickable { navController.navigate("MainScreen") },
                     color = CustomTrafficWhite,
-                    fontFamily = segoe_ui_enter_screen,
+                    fontFamily = segoe_ui,
                     fontSize = 18.sp
                 )
 
