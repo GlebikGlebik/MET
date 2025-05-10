@@ -20,11 +20,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 import com.MethaneEcoTrans.METR.theme.CustomTurquoiseBlue
 import com.MethaneEcoTrans.METR.theme.CustomTrafficWhite
 import com.MethaneEcoTrans.METR.theme.CustomCarpiBlue
+import com.MethaneEcoTrans.METR.theme.CustomDeepOrange
 import com.MethaneEcoTrans.METR.theme.CustomEnterBarColor
 import com.MethaneEcoTrans.METR.theme.CustomGrey
 
@@ -39,18 +44,55 @@ fun MainScreen(navController: NavController){
         val boxWidth = this.maxWidth
         val boxHeight = this.maxHeight
 
+
+        // поле с акциями
         Box(
             modifier = Modifier
-                .requiredSize(boxWidth / 10 * 8, boxHeight/18 * 6)
-                .background(color = CustomGrey)
-                .padding(top = boxHeight/18)
-                .align(Alignment.Center)
+                .fillMaxSize()
+                .padding(
+                    start = boxWidth / 10,
+                    end = boxWidth / 10,
+                    top = boxHeight/ 18 * 10,
+                    bottom = boxHeight / 18 + 12.dp
+                )
         ){
-            Text(
-                text = "pussy",
-                color = CustomTrafficWhite
-            )
+            Box(
+                modifier = Modifier
+                    .size(boxWidth / 10 * 8, boxHeight / 18 * 6 )
+                    .border(1.dp, CustomDeepOrange, shape = RoundedCornerShape(15.dp))
+                    .background(color = CustomTrafficWhite, shape = RoundedCornerShape(15.dp))
+            ){
+
+            }
         }
+
+        // поле с навигацией
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(
+                    start = boxWidth / 10,
+                    end = boxWidth / 10,
+                    top = boxHeight/ 18 * 16 + 12.dp,
+                    bottom = boxHeight/ 18
+                )
+        ){
+            Box(
+                modifier = Modifier
+                    .size(boxWidth / 10 * 8, boxHeight / 18 * 1 )
+                    .border(1.dp, CustomDeepOrange, shape = RoundedCornerShape(15.dp))
+                    .background(color = CustomTrafficWhite, shape = RoundedCornerShape(15.dp))
+            ){
+                Image(
+                    painter = painterResource(id = R.drawable.history_icon_1),
+                    contentDescription = "HistoryIcon",
+                    modifier = Modifier
+                        .fillMaxSize()
+                )
+            }
+        }
+
+
     }
 }
 
