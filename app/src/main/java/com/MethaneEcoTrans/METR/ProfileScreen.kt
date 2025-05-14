@@ -36,7 +36,7 @@ import com.MethaneEcoTrans.METR.theme.CustomEnterBarColor
 import com.MethaneEcoTrans.METR.theme.CustomGrey
 
 @Composable
-fun MainScreen(navController: NavController){
+fun ProfileScreen(navController: NavController){
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
@@ -47,55 +47,121 @@ fun MainScreen(navController: NavController){
         val boxHeight = this.maxHeight
 
 
-        //кнопка добавить заправку
+
+
+        // поле с предварительной историей
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
+                    top = boxHeight/19 * 10,
+                    bottom = boxHeight/19 * 2,
                     start = boxWidth / 10,
-                    end = boxWidth / 10,
-                    top = boxHeight / 18 * 9 - 12.dp,
-                    bottom = boxHeight / 18 * 7
-                )
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(boxWidth / 10 * 4, boxHeight / 18 * 1)
-                    .background(color = CustomCarpiBlue, shape =  RoundedCornerShape(15.dp))
-
-            ){
-                Text(
-                    text = "Добавить заправку",
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .clickable { navController.navigate("EnterScreen") },
-                    color = CustomTrafficWhite,
-                    fontFamily = segoe_ui,
-                    fontSize = 16.sp
-                )
-            }
-        }
-
-        // поле с акциями
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(
-                    start = boxWidth / 10,
-                    end = boxWidth / 10,
-                    top = boxHeight/ 18 * 10,
-                    bottom = boxHeight / 18 + 12.dp
+                    end = boxWidth / 10
                 )
         ){
             Box(
                 modifier = Modifier
-                    .size(boxWidth / 10 * 8, boxHeight / 18 * 6 )
-                    .border(1.dp, CustomDeepOrange, shape = RoundedCornerShape(15.dp))
-                    .background(color = CustomTrafficWhite, shape = RoundedCornerShape(15.dp))
+                    .fillMaxSize()
+                    .background(color = CustomTurquoiseBlue, shape = RoundedCornerShape(15.dp))
             ){
+                // поле "История"
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(
+                            top = 12.dp,
+                            start = boxWidth / 10,
+                            bottom = boxHeight / 18 * 6 - 12.dp,
+                            end = boxWidth / 10 * 4 - 6.dp
+                        )
+                ){
+                    Box(
+                        modifier = Modifier
+                            .size(boxWidth / 10 * 3, boxHeight / 18)
+                            .border(1.dp, CustomTrafficWhite, shape = RoundedCornerShape(15.dp))
+                    ){
+                        Text(
+                            text = "История",
+                            modifier = Modifier
+                                .align(Alignment.Center),
+                            color = CustomTrafficWhite,
+                            fontFamily = segoe_ui,
+                            fontSize = 16.sp
+                        )
+                    }
+                }
+                // "поле выбор авто"
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(
+                            top = 12.dp,
+                            start = boxWidth / 10 * 4 + 6.dp,
+                            bottom = boxHeight / 18 * 6 - 12.dp,
+                            end = boxWidth / 10
+                        )
+                ){
+                    Box(
+                        modifier = Modifier
+                            .size(boxWidth / 10 * 3, boxHeight / 18)
+                            .border(1.dp, CustomTrafficWhite, shape = RoundedCornerShape(15.dp))
+                    ){
+                        Text(
+                            text = "Номер авто ≡",
+                            modifier = Modifier
+                                .align(Alignment.Center),
+                            color = CustomTrafficWhite,
+                            fontFamily = segoe_ui,
+                            fontSize = 16.sp
+                        )
+                    }
+                }
+
+                // поле с самой историей
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(
+                            top = boxHeight / 18,
+                            start = boxWidth / 10 ,
+                            bottom = boxHeight / 18,
+                            end = boxWidth / 10
+                        )
+                ){
+                    Box(
+                        modifier = Modifier
+                            .size(boxWidth / 10 * 6, boxHeight / 18 * 5)
+                            .background(color = CustomTrafficWhite, shape = RoundedCornerShape(15.dp))
+                    ){
+
+                    }
+                }
+
+                // поле загрузить еще
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(
+                            top = boxHeight / 18 * 6 - 12.dp,
+                            start = boxWidth / 10 ,
+                            bottom = 12.dp,
+                            end = boxWidth / 10
+                        )
+                ){
+                    Text(
+                        text = "Загрузить еще",
+                        modifier = Modifier
+                            .align(Alignment.Center),
+                        color = CustomTrafficWhite,
+                        fontFamily = segoe_ui,
+                        fontSize = 12.sp
+                    )
+                }
 
             }
         }
+
 
         // поле с навигацией
         Box(
@@ -151,14 +217,12 @@ fun MainScreen(navController: NavController){
                 }
             }
         }
-
-
     }
 }
 
 @Composable
 @Preview(showBackground = true)
-fun PreviewMainScreen() {
+fun PreviewProfileScreen() {
     val navController = rememberNavController()
-    MainScreen(navController)
+    ProfileScreen(navController)
 }
