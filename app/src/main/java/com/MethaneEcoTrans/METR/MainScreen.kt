@@ -25,7 +25,9 @@ import androidx.compose.foundation.border
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
 import com.MethaneEcoTrans.METR.theme.CustomTurquoiseBlue
 import com.MethaneEcoTrans.METR.theme.CustomTrafficWhite
 import com.MethaneEcoTrans.METR.theme.CustomCarpiBlue
@@ -44,6 +46,35 @@ fun MainScreen(navController: NavController){
         val boxWidth = this.maxWidth
         val boxHeight = this.maxHeight
 
+
+        //кнопка добавить заправку
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(
+                    start = boxWidth / 10,
+                    end = boxWidth / 10,
+                    top = boxHeight / 18 * 9 - 12.dp,
+                    bottom = boxHeight / 18 * 7
+                )
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(boxWidth / 10 * 4, boxHeight / 18 * 1)
+                    .background(color = CustomCarpiBlue, shape =  RoundedCornerShape(15.dp))
+
+            ){
+                Text(
+                    text = "Добавить заправку",
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .clickable { navController.navigate("EnterScreen") },
+                    color = CustomTrafficWhite,
+                    fontFamily = segoe_ui,
+                    fontSize = 16.sp
+                )
+            }
+        }
 
         // поле с акциями
         Box(
@@ -77,18 +108,49 @@ fun MainScreen(navController: NavController){
                     bottom = boxHeight/ 18
                 )
         ){
-            Box(
+            BoxWithConstraints(
                 modifier = Modifier
                     .size(boxWidth / 10 * 8, boxHeight / 18 * 1 )
                     .border(1.dp, CustomDeepOrange, shape = RoundedCornerShape(15.dp))
                     .background(color = CustomTrafficWhite, shape = RoundedCornerShape(15.dp))
             ){
-                Image(
-                    painter = painterResource(id = R.drawable.history_icon_1),
-                    contentDescription = "HistoryIcon",
+                val navBoxHeight = this.maxHeight
+                val navBoxWidth = this.maxWidth
+                Row(
                     modifier = Modifier
-                        .fillMaxSize()
-                )
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ){
+                    Image(
+                        painter = painterResource(id = R.drawable.history_icon_1),
+                        contentDescription = "socialNetworkIcon",
+                        modifier = Modifier
+                            .requiredSize(boxHeight / 11),
+                        contentScale = ContentScale.Fit
+                    )
+                    Image(
+                        painter = painterResource(id = R.drawable.history_icon_1),
+                        contentDescription = "historyIcon",
+                        modifier = Modifier
+                            .requiredSize(boxHeight / 11),
+                        contentScale = ContentScale.Fit
+                    )
+                    Image(
+                        painter = painterResource(id = R.drawable.history_icon_1),
+                        contentDescription = "statisticIcon",
+                        modifier = Modifier
+                            .requiredSize(boxHeight / 11),
+                        contentScale = ContentScale.Fit
+                    )
+                    Image(
+                        painter = painterResource(id = R.drawable.history_icon_1),
+                        contentDescription = "profileIcon",
+                        modifier = Modifier
+                            .requiredSize(boxHeight / 11),
+                        contentScale = ContentScale.Fit
+                    )
+                }
             }
         }
 

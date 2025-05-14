@@ -217,7 +217,7 @@ fun EnterScreen(navController: NavController) {
                     text = "Регистрация",
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .clickable { navController.navigate("MainScreen") },
+                        .clickable { navController.navigate("RegistrationScreen") },
                     color = CustomTrafficWhite,
                     fontFamily = segoe_ui,
                     fontSize = 18.sp
