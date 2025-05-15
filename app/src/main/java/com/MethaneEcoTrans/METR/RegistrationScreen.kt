@@ -83,12 +83,8 @@ fun RegistrationScreen(navController: NavController) {
 
             if (!emailError && !emptyFieldsError) {
                 showRegistrationActivity = true
-                UserData.name = name
-                UserData.surname = surname
-                UserData.password = password
-                UserData.email = email
                 // Логируем данные пользователя
-                Log.d("RegistrarionScreen", "Данные пользователя: ${UserData.name}, ${UserData.surname}, ${UserData.email}, ${UserData.uid}")
+                Log.d("RegistrarionScreen", "Данные пользователя: $name, $surname, $email")
             }
         }
 

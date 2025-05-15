@@ -2,6 +2,7 @@ package com.MethaneEcoTrans.METR
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
+import android.util.Log
 
 data class UserHistory(
     val history: MutableMap<String, MutableMap<String, List<String>>>
@@ -15,21 +16,21 @@ data class UserData(
     val vehicles: List<String>
 )
 
-fun saveUserData(email: String, password: String, surname: String, name: String){
+fun saveUserData(email: String, password: String, surname: String, name: String) {
     val auth = FirebaseAuth.getInstance()
-    val user  = auth.currentUser
+    val user = auth.currentUser
 
-    if (user  != null) {
+    if (user != null) {
         val uid = user.uid
 
         // Создание объекта UserData
         val userData = UserData(
-                email = email,
-                password = password,
-                surname = surname,
-                name = name,
-                vehicles = emptyList() // Изначально пустой список
-            )
+            email = email,
+            password = password,
+            surname = surname,
+            name = name,
+            vehicles = emptyList() // Изначально пустой список
+        )
 
         val userHistory = UserHistory(history = mutableMapOf())
 
@@ -40,19 +41,22 @@ fun saveUserData(email: String, password: String, surname: String, name: String)
 
         userDataRef.setValue(userData).addOnCompleteListener { task ->
             if (task.isSuccessful) {
-                println("Данные пользователя успешно сохранены.")
+                Log.d("UserData", "Данные пользователя успешно сохранены.")
             } else {
-                println("Ошибка при сохранении данных: ${task.exception?.message}")
+                Log.e("UserData", "Ошибка при сохранении данных: ${task.exception?.message}")
             }
         }
         userHistoryRef.setValue(userHistory).addOnCompleteListener { task ->
             if (task.isSuccessful) {
-                println("История пользователя успешно инициализирована.")
+                Log.d("UserData", "История пользователя успешно инициализирована.")
             } else {
-                println("Ошибка при инициализации истории: ${task.exception?.message}")
+                Log.e(
+                    "UserData",
+                    "Ошибка при инициализации истории: ${task.exception?.message}"
+                )
             }
         }
     } else {
-        println("Пользователь не аутентифицирован.")
+        Log.e("UserData", "Пользователь не аутентифицирован.")
     }
 }
