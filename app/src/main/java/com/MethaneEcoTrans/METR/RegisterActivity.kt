@@ -27,6 +27,10 @@ fun RegisterActivity(
 
             // Успешная регистрация
             if (user != null) {
+                UserData.uid = user.uid  // Получаем уникальный идентификатор пользователя
+                Log.d("RegisterActivity", "UID: ${UserData.uid}")
+
+
                 onRegistrationSuccess(user)
             } else {
                 onRegistrationFailure("Ошибка: пользователь не создан.")
@@ -36,4 +40,5 @@ fun RegisterActivity(
             onRegistrationFailure("Ошибка регистрации: ${e.message}")
         }
     }
+    userDataUpdate()
 }

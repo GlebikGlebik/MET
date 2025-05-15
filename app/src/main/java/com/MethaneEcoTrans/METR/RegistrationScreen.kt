@@ -83,6 +83,12 @@ fun RegistrationScreen(navController: NavController) {
 
             if (!emailError && !emptyFieldsError) {
                 showRegistrationActivity = true
+                UserData.name = name
+                UserData.surname = surname
+                UserData.password = password
+                UserData.email = email
+                // Логируем данные пользователя
+                Log.d("RegistrarionScreen", "Данные пользователя: ${UserData.name}, ${UserData.surname}, ${UserData.email}, ${UserData.uid}")
             }
         }
 
@@ -93,7 +99,7 @@ fun RegistrationScreen(navController: NavController) {
                 password = password,
                 onRegistrationSuccess = { user ->
                     // Перейти на следующий экран после успешной регистрации
-                    navController.navigate("NextScreen")
+                    navController.navigate("MainScreen")
                     showRegistrationActivity = false // Сброс состояния
                 },
                 onRegistrationFailure = { errorMessage ->

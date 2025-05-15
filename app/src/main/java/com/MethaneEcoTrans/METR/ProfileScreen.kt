@@ -47,8 +47,6 @@ fun ProfileScreen(navController: NavController){
         val boxHeight = this.maxHeight
 
 
-
-
         // поле с предварительной историей
         Box(
             modifier = Modifier
@@ -134,7 +132,26 @@ fun ProfileScreen(navController: NavController){
                             .size(boxWidth / 10 * 6, boxHeight / 18 * 5)
                             .background(color = CustomTrafficWhite, shape = RoundedCornerShape(15.dp))
                     ){
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(
+                                    top = 12.dp,
+                                    start = 12.dp,
+                                    end = 12.dp,
+                                    bottom = boxHeight / 18 * 4
+                                )
+                        ){
+                            Row(
+                                modifier = Modifier
+                                    .background(color = CustomCarpiBlue)
+                                    .fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ){
 
+                            }
+                        }
                     }
                 }
 
