@@ -4,8 +4,6 @@ package com.MethaneEcoTrans.METR
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.Composable
@@ -68,7 +66,7 @@ fun RegistrationScreen(navController: NavController) {
         var isFocusedEmail by remember { mutableStateOf(false) }
         var isFocusedPassword by remember { mutableStateOf(false) }
 
-        // обавляем функцию, проверяющую корректность email
+        // добавляем функцию, проверяющую корректность email
         fun isEmailValid(email: String): Boolean {
             return Patterns.EMAIL_ADDRESS.matcher(email).matches()
         }
@@ -96,7 +94,9 @@ fun RegistrationScreen(navController: NavController) {
                 onRegistrationSuccess = { user ->
                     // Перейти на следующий экран после успешной регистрации
                     saveUserData(email, password, surname, name)
-                    navController.navigate("MainScreen")
+                    navController.navigate("MainScreen") {
+                        popUpTo("EnterScreen") { inclusive = true }
+                    }
                     showRegistrationActivity = false
                 },
                 onRegistrationFailure = { errorMessage ->

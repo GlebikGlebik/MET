@@ -1,10 +1,9 @@
 package com.MethaneEcoTrans.METR
 
 
+import android.util.Patterns
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.Composable
@@ -21,6 +20,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.focus.onFocusChanged
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarDuration
+import kotlinx.coroutines.launch
+import androidx.compose.material3.CircularProgressIndicator
 import com.MethaneEcoTrans.METR.theme.CustomTurquoiseBlue
 import com.MethaneEcoTrans.METR.theme.CustomTrafficWhite
 import com.MethaneEcoTrans.METR.theme.CustomCarpiBlue
@@ -35,6 +40,11 @@ fun EnterScreen(navController: NavController) {
             .background(CustomTurquoiseBlue)
     ) {
 
+        //корутина, экземпляр furebaseAuthentification и состояние для снекбара (вспылвашек)
+        val auth = Firebase.auth
+        val snackbarHostState = remember { SnackbarHostState() }
+        val coroutineScope = rememberCoroutineScope()
+
         // Получаем размеры внутреннего экрана, которые равняются половине экрана
         val boxWidth = this.maxWidth * 0.5f
         val boxHeight = this.maxHeight * 0.5f
@@ -44,6 +54,53 @@ fun EnterScreen(navController: NavController) {
         var email by remember { mutableStateOf("") }
         var isFocusedEmail by remember { mutableStateOf(false) }
         var isFocusedPassword by remember { mutableStateOf(false) }
+        var isLoading by remember { mutableStateOf(false) }
+        var errorMessage by remember { mutableStateOf<String?>(null) }
+
+        // Состояния ошибок
+        var emailError by remember { mutableStateOf(false) }
+        var emptyFieldsError by remember { mutableStateOf(false) }
+
+        // добавляем функцию, проверяющую корректность email
+        fun isEmailValid(email: String): Boolean {
+            return Patterns.EMAIL_ADDRESS.matcher(email).matches()
+        }
+
+        fun onEnterClick(){
+            //проверяем ошибки
+            emailError = !isEmailValid(email)
+            emptyFieldsError = email.isEmpty() || password.isEmpty()
+
+            if (!emailError && !emptyFieldsError){
+                signInUser(
+                    auth = auth,
+                    email = email,
+                    password = password,
+                    navController = navController,
+                    snackbarHostState = snackbarHostState,
+                    coroutineScope = coroutineScope
+                )
+            } else {
+                if (emailError && !emptyFieldsError) {
+                    isLoading = false
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(
+                            "Неверный email",
+                            duration = SnackbarDuration.Short
+                        )
+                    }
+                }
+                if (!emailError && emptyFieldsError) {
+                    isLoading = false
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(
+                            "Необходимо заполнить все поля",
+                            duration = SnackbarDuration.Short
+                        )
+                    }
+                }
+            }
+        }
 
         Box(
             modifier = Modifier
@@ -189,16 +246,31 @@ fun EnterScreen(navController: NavController) {
 
                     )
                     .background(CustomCarpiBlue, shape = RoundedCornerShape(10.dp))
+                    .clickable(){
+                        if (!isLoading){
+                            isLoading = true
+                            onEnterClick()
+                            isLoading = false
+                        }
+                    }
             ) {
-                Text(
-                    text = "Вход",
-                    modifier = Modifier
-                        .align(Alignment.Center),
-                    color = CustomTrafficWhite,
-                    fontFamily = segoe_ui,
-                    fontSize = 18.sp
-                )
-
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .size(12.dp),
+                        color = CustomTrafficWhite,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = "Вход",
+                        modifier = Modifier.align(Alignment.Center),
+                        color = CustomTrafficWhite,
+                        fontFamily = segoe_ui,
+                        fontSize = 18.sp
+                    )
+                }
             }
             //Кнопка регистрация
             Box(
@@ -225,5 +297,9 @@ fun EnterScreen(navController: NavController) {
 
             }
         }
+        androidx.compose.material3.SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
     }
 }

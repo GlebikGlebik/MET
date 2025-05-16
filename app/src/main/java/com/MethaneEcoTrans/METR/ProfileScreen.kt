@@ -34,6 +34,7 @@ import com.MethaneEcoTrans.METR.theme.CustomCarpiBlue
 import com.MethaneEcoTrans.METR.theme.CustomDeepOrange
 import com.MethaneEcoTrans.METR.theme.CustomEnterBarColor
 import com.MethaneEcoTrans.METR.theme.CustomGrey
+import com.google.firebase.database.FirebaseDatabase
 
 @Composable
 fun ProfileScreen(navController: NavController){
@@ -46,6 +47,9 @@ fun ProfileScreen(navController: NavController){
         val boxWidth = this.maxWidth
         val boxHeight = this.maxHeight
 
+        //взаимодействие с realtime database
+        val database = FirebaseDatabase.getInstance("https://met-project-fdcef-default-rtdb.europe-west1.firebasedatabase.app/")
+        val ref = database.getReference("users")
 
         // поле с предварительной историей
         Box(
@@ -149,7 +153,9 @@ fun ProfileScreen(navController: NavController){
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ){
-
+                                Text(
+                                    text = "$"
+                                )
                             }
                         }
                     }
