@@ -95,13 +95,14 @@ fun RegistrationScreen(navController: NavController) {
                 password = password,
                 onRegistrationSuccess = { user ->
                     // Перейти на следующий экран после успешной регистрации
+                    saveUserData(email, password, surname, name)
                     navController.navigate("MainScreen")
-                    showRegistrationActivity = false // Сброс состояния
+                    showRegistrationActivity = false
                 },
                 onRegistrationFailure = { errorMessage ->
                     // Обработка ошибки регистрации
                     Log.e("RegistrationScreen", errorMessage)
-                    showRegistrationActivity = false // Сброс состояния
+                    showRegistrationActivity = false
                 }
             )
         }

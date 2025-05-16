@@ -17,6 +17,7 @@ data class UserData(
 )
 
 fun saveUserData(email: String, password: String, surname: String, name: String) {
+    Log.d("UserData", "saveUserData была вызвана")
     val auth = FirebaseAuth.getInstance()
     val user = auth.currentUser
 
@@ -35,7 +36,7 @@ fun saveUserData(email: String, password: String, surname: String, name: String)
         val userHistory = UserHistory(history = mutableMapOf())
 
         // Сохранение данных пользователя в Realtime Database
-        val database = FirebaseDatabase.getInstance()
+        val database = FirebaseDatabase.getInstance("https://met-project-fdcef-default-rtdb.europe-west1.firebasedatabase.app/")
         val userDataRef = database.getReference("users").child(uid)
         val userHistoryRef = database.getReference("history").child(uid)
 

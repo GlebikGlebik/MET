@@ -53,8 +53,6 @@ fun RegisterActivity(
 
             //ждем пока пользователь подтвердит почту
             if (user != null) {
-                val uid = user.uid  // Получаем уникальный идентификатор пользователя
-                Log.d("RegisterActivity", "UID: $uid") // Логируем его
                 checkEmailVerification(user, onRegistrationSuccess, onRegistrationFailure)
             } else {
                 onRegistrationFailure("Ошибка: пользователь не создан")
