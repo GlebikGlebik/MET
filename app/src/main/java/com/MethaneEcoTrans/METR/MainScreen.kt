@@ -1,5 +1,8 @@
 package com.MethaneEcoTrans.METR
 
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Divider
 import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
@@ -11,7 +14,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.clickable
 import androidx.navigation.NavController
-import androidx.compose.ui.Alignment
 import androidx.compose.foundation.border
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
@@ -40,6 +42,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.material3.SnackbarDuration
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextAlign
 import kotlinx.coroutines.launch
 import com.google.firebase.auth.ktx.auth
@@ -85,6 +89,7 @@ fun MainScreen(navController: NavController){
     var sum by remember { mutableStateOf("") }
     var userVehicles by remember { mutableStateOf<List<String>>(emptyList()) }
     var newVehicle by remember { mutableStateOf("") }
+    var currentVehicle by remember { mutableStateOf("") }
     var car1 by remember { mutableStateOf("") }
     var car2 by remember { mutableStateOf("") }
     var car3 by remember { mutableStateOf("") }
@@ -95,8 +100,118 @@ fun MainScreen(navController: NavController){
     var isFocusedSum by remember { mutableStateOf(false) }
     var isFocusedNewVehicle by remember { mutableStateOf(false) }
 
+    suspend fun addUserHistory() {
+        //проверки
+        if (date.isBlank() || volume.isBlank() || sum.isBlank()) {
+            snackbarHostState.showSnackbar("Необходимо заполнить все поля")
+            return
+        }
+        if (currentVehicle == "") {
+            snackbarHostState.showSnackbar("Необходимо указать транспортное средство")
+            return
+        }
+        if (!isDateValid(date)) {
+            snackbarHostState.showSnackbar("Некорректный формат даты")
+            return
+        }
+
+        // основной блок отправки
+        try {
+            val userUid = user?.uid ?: run {
+                snackbarHostState.showSnackbar("Ошибка: пользователь не авторизован")
+                return
+            }
+
+            // Функция для преобразования даты в Firebase-совместимый формат
+            fun formatDateForFirebase(inputDate: String): String {
+                return inputDate.replace(".", ";")
+            }
+
+            val firebaseDate = formatDateForFirebase(date)
+
+            // Создаем ссылку на нужное место в базе данных
+            val historyRef = database.getReference("history")
+                .child(userUid)
+                .child(currentVehicle)
+                .child(firebaseDate) // Используем преобразованную дату
+
+            // Создаем объект с данными заправки
+            val refuelData = hashMapOf(
+                "volume" to volume,
+                "sum" to sum
+            )
+
+            // Сохраняем данные
+            historyRef.setValue(refuelData).await()
+
+            // Очищаем поля после успешного сохранения
+            date = ""
+            volume = ""
+            sum = ""
+            currentVehicle = ""
+
+            snackbarHostState.showSnackbar("Данные о заправке сохранены")
+        } catch (e: Exception) {
+            snackbarHostState.showSnackbar("Ошибка при сохранении: ${e.message}")
+        }
+    }
+
+    suspend fun deleteUserVehicle() {
+        // Проверки
+        if (newVehicle.isBlank()) {
+            snackbarHostState.showSnackbar("Необходимо указать транспортное средство")
+            return
+        }
+
+        try {
+            val userUid = user?.uid ?: run {
+                snackbarHostState.showSnackbar("Ошибка: пользователь не авторизован")
+                return
+            }
+
+            val userRef = database.getReference("users/$userUid")
+
+            // Получаем текущий список авто
+            val snapshot = userRef.child("vehicles").get().await()
+            val currentVehicles = snapshot.children.mapNotNull { it.getValue(String::class.java) }
+
+            // Проверяем, существует ли такой автомобиль
+            if (!currentVehicles.contains(newVehicle)) {
+                snackbarHostState.showSnackbar("Такой автомобиль не найден")
+                return
+            }
+
+            // Сразу обновляем локальное состояние (для мгновенного отображения в UI)
+            userVehicles = userVehicles.filter { it != newVehicle }
+
+            // Удаляем автомобиль из базы данных
+            userRef.child("vehicles").setValue(userVehicles).await()
+
+            // Если удаляемый автомобиль был выбран - сбрасываем выбор
+            if (currentVehicle == newVehicle) {
+                currentVehicle = ""
+            }
+
+            // Очищаем поле ввода
+            newVehicle = ""
+
+            snackbarHostState.showSnackbar("Автомобиль удален")
+        } catch (e: Exception) {
+            // В случае ошибки - восстанавливаем локальное состояние
+            userVehicles = database.getReference("users/${user?.uid}/vehicles")
+                .get().await()
+                .children.mapNotNull { it.getValue(String::class.java) }
+
+            snackbarHostState.showSnackbar("Ошибка при удалении: ${e.message}")
+        }
+    }
+
     suspend fun addUserVehicle() {
-        if (newVehicle.isBlank()) return
+        if (newVehicle.isBlank()) {
+            snackbarHostState.showSnackbar("Необходимо указать транспортное средство")
+            return
+        }
+
 
         try {
             val userRef = database.getReference("users/${user?.uid}")
@@ -238,19 +353,59 @@ fun MainScreen(navController: NavController){
                                             bottom = dialogHeight / 21 * 9
                                         )
                                 ){
+                                    var expanded by remember { mutableStateOf(false) }
+                                    val focusManager = LocalFocusManager.current
+
                                     Box(
                                         modifier = Modifier
                                             .background(CustomTurquoiseBlue, shape = RoundedCornerShape(15.dp))
                                             .requiredSize(dialogWidth / 11 * 5, dialogHeight / 21 * 1)
+                                            .clickable{
+                                                focusManager.clearFocus()
+                                                expanded = true
+                                            }
                                     ) {
                                         Text(
-                                            text = "Номер авто ≡",
-                                            modifier = Modifier
-                                                .align(Alignment.Center),
+                                            text = currentVehicle.ifEmpty { "Номер авто ≡" },
+                                            modifier = Modifier.align(Alignment.Center),
                                             color = CustomTrafficWhite,
                                             fontFamily = segoe_ui,
                                             fontSize = 12.sp
                                         )
+                                        DropdownMenu(
+                                            expanded = expanded,
+                                            onDismissRequest = { expanded = false },
+                                            modifier = Modifier
+                                                .width(dialogWidth / 11 * 5)
+                                                .background(CustomTurquoiseBlue)
+                                        ) {
+                                            if (userVehicles.isEmpty()) {
+                                                DropdownMenuItem(
+                                                    text = {
+                                                        Text(
+                                                            "Добавьте автомобиль",
+                                                            color = CustomTrafficWhite
+                                                        )
+                                                    },
+                                                    onClick = { expanded = false }
+                                                )
+                                            } else {
+                                                userVehicles.forEach { vehicle ->
+                                                    DropdownMenuItem(
+                                                        text = {
+                                                            Text(
+                                                                vehicle,
+                                                                color = CustomTrafficWhite
+                                                            )
+                                                        },
+                                                        onClick = {
+                                                            currentVehicle = vehicle
+                                                            expanded = false
+                                                        }
+                                                    )
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                                 // поле для ввода даты
@@ -365,7 +520,7 @@ fun MainScreen(navController: NavController){
                                                 ) {
                                                     if (volume.isEmpty() && !isFocusedVolume) {
                                                         Text(
-                                                            text = "объем в литрах",
+                                                            text = "объем",
                                                             modifier = Modifier.alpha(0.5f),
                                                             color = CustomGrey,
                                                             fontFamily = segoe_ui,
@@ -457,6 +612,11 @@ fun MainScreen(navController: NavController){
                                         modifier = Modifier
                                             .requiredSize(dialogWidth / 11 * 9, dialogHeight/21 * 1)
                                             .background(CustomCarpiBlue, shape = RoundedCornerShape(15.dp))
+                                            .clickable{
+                                                coroutineScope.launch {
+                                                    addUserHistory()
+                                                }
+                                            }
                                     ){
                                         Text(
                                             text = "Добавить заправку",
@@ -491,8 +651,8 @@ fun MainScreen(navController: NavController){
                                         .fillMaxSize()
                                         .padding(
                                             top = dialogHeight / 21 * 1,
-                                            start = dialogWidth / 11 * 8,
-                                            end = dialogWidth / 11 * 1,
+                                            start = dialogWidth / 11 * 7,
+                                            end = dialogWidth / 11 * 3,
                                             bottom = dialogHeight / 21 * 7
                                         )
                                 ){
@@ -501,14 +661,14 @@ fun MainScreen(navController: NavController){
                                             .requiredSize(dialogWidth / 11 * 1 + 2.dp, dialogHeight/21 * 1)
                                             .background(CustomCarpiBlue, shape = RoundedCornerShape(15.dp))
                                             .clickable{
-                                                if (!newVehicle.isEmpty() || newVehicle.length == 6){
+                                                if (!newVehicle.isBlank()){
                                                     coroutineScope.launch {
                                                         addUserVehicle()
                                                     }
                                                 } else {
                                                     coroutineScope.launch {
                                                         snackbarHostState.showSnackbar(
-                                                            "Необходимо указать номер авто в фромате: AA888A",
+                                                            "Необходимо указать транспортное средство",
                                                             duration = SnackbarDuration.Short
                                                         )
                                                     }
@@ -524,6 +684,46 @@ fun MainScreen(navController: NavController){
                                         )
                                     }
                                 }
+                                // кнопка удалить автомобиль
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(
+                                            top = dialogHeight / 21 * 1,
+                                            start = dialogWidth / 11 * 9 - 3.dp,
+                                            end = dialogWidth / 11 * 1 + 3.dp,
+                                            bottom = dialogHeight / 21 * 7
+                                        )
+                                ){
+                                    Box(
+                                        modifier = Modifier
+                                            .requiredSize(dialogWidth / 11 * 1 + 2.dp, dialogHeight/21 * 1)
+                                            .background(CustomCarpiBlue, shape = RoundedCornerShape(15.dp))
+                                            .clickable{
+                                                if (!newVehicle.isBlank()){
+                                                    coroutineScope.launch {
+                                                        deleteUserVehicle()
+                                                    }
+                                                } else {
+                                                    coroutineScope.launch {
+                                                        snackbarHostState.showSnackbar(
+                                                            "Необходимо указать транспортное средство",
+                                                            duration = SnackbarDuration.Short
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                    ){
+                                        Icon(
+                                            painter = painterResource(R.drawable.vector_cross), // Ваш вектор
+                                            contentDescription = "Удалить",
+                                            modifier = Modifier
+                                                .size(10.dp)
+                                                .align(Alignment.Center),
+                                            tint = CustomTrafficWhite
+                                        )
+                                    }
+                                }
                                 // поле для записи нового авто
                                 Box(
                                     modifier = Modifier
@@ -531,13 +731,13 @@ fun MainScreen(navController: NavController){
                                         .padding(
                                             top = dialogHeight / 21 * 1,
                                             start = dialogWidth / 11 * 1,
-                                            end = dialogWidth / 11 * 3,
+                                            end = dialogWidth / 11 * 5,
                                             bottom = dialogHeight / 21 * 7
                                         )
                                 ){
                                     Box(
                                         modifier = Modifier
-                                            .requiredSize(dialogWidth / 11 * 7, dialogHeight/21 * 1)
+                                            .requiredSize(dialogWidth / 11 * 5, dialogHeight/21 * 1)
                                             .background(CustomEnterBarColor, shape = RoundedCornerShape(15.dp))
                                     ){
                                         //плейсхолдер
@@ -573,7 +773,7 @@ fun MainScreen(navController: NavController){
                                                 ) {
                                                     if (newVehicle.isEmpty() && !isFocusedNewVehicle) {
                                                         Text(
-                                                            text = "новый автомобиль",
+                                                            text = "автомобиль",
                                                             modifier = Modifier.alpha(0.5f),
                                                             color = CustomGrey,
                                                             fontFamily = segoe_ui,
@@ -611,7 +811,28 @@ fun MainScreen(navController: NavController){
                                                 fontSize = 10.sp
                                             )
                                         } else {
-
+                                            LazyColumn(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .background(CustomTrafficWhite)
+                                            ) {
+                                                items(userVehicles) { vehicle ->
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .padding(vertical = 4.dp)
+                                                    ) {
+                                                        Text(
+                                                            text = vehicle,
+                                                            modifier = Modifier
+                                                                .padding(horizontal = 8.dp, vertical = 6.dp),
+                                                            color = CustomGrey,
+                                                            fontFamily = segoe_ui,
+                                                            fontSize = 12.sp
+                                                        )
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
