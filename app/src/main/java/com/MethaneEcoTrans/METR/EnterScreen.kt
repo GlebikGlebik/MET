@@ -85,7 +85,7 @@ fun EnterScreen(navController: NavController) {
                     isLoading = false
                     coroutineScope.launch {
                         snackbarHostState.showSnackbar(
-                            "Неверный email",
+                            "Неверный формат email",
                             duration = SnackbarDuration.Short
                         )
                     }

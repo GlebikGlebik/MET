@@ -1,5 +1,6 @@
 package com.MethaneEcoTrans.METR
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.ui.unit.sp
@@ -16,8 +17,39 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.runtime.*
+import androidx.compose.material3.*
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.TextStyle
+import com.MethaneEcoTrans.METR.theme.*
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.ui.text.style.TextAlign
+import kotlinx.coroutines.launch
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.coroutineScope
+import com.google.firebase.database.FirebaseDatabase
+import kotlinx.coroutines.tasks.await
 import com.MethaneEcoTrans.METR.theme.CustomTurquoiseBlue
 import com.MethaneEcoTrans.METR.theme.CustomTrafficWhite
 import com.MethaneEcoTrans.METR.theme.CustomCarpiBlue
@@ -25,8 +57,98 @@ import com.MethaneEcoTrans.METR.theme.CustomDeepOrange
 import com.MethaneEcoTrans.METR.theme.CustomEnterBarColor
 import com.MethaneEcoTrans.METR.theme.CustomGrey
 
+
+fun isDateValid(date: String): Boolean {
+    val regex = """^(0[1-9]|[12][0-9]|3[01])\.(0[1-9]|1[012])\.\d{4}$""".toRegex()
+    return date.matches(regex)
+}
+
 @Composable
 fun MainScreen(navController: NavController){
+    // отследиванием состояние высплывающего окна
+    var showRefuelDialog by remember { mutableStateOf(false) }
+
+    // штуки для уведомлений
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+
+    //штуки для работы с firebase
+    val auth = Firebase.auth
+    val database = FirebaseDatabase.getInstance("https://met-project-fdcef-default-rtdb.europe-west1.firebasedatabase.app/")
+    val user = auth.currentUser
+    Log.d("userUID", "Current UID: ${user?.uid ?: "null"}")
+    val vehiclesRef = database.getReference("users").child(user?.uid.toString()).child("vehicles")
+
+    // Отслеживание состояний
+    var date by remember { mutableStateOf("") }
+    var volume by remember { mutableStateOf("") }
+    var sum by remember { mutableStateOf("") }
+    var userVehicles by remember { mutableStateOf<List<String>>(emptyList()) }
+    var newVehicle by remember { mutableStateOf("") }
+    var car1 by remember { mutableStateOf("") }
+    var car2 by remember { mutableStateOf("") }
+    var car3 by remember { mutableStateOf("") }
+
+    // Состояния для фокуса
+    var isFocusedDate by remember { mutableStateOf(false) }
+    var isFocusedVolume by remember { mutableStateOf(false) }
+    var isFocusedSum by remember { mutableStateOf(false) }
+    var isFocusedNewVehicle by remember { mutableStateOf(false) }
+
+    suspend fun addUserVehicle() {
+        if (newVehicle.isBlank()) return
+
+        try {
+            val userRef = database.getReference("users/${user?.uid}")
+
+            // Получаем текущий список авто
+            val snapshot = userRef.child("vehicles").get().await()
+            val currentVehicles = snapshot.children.mapNotNull { it.getValue(String::class.java) }
+
+            // Проверяем, нет ли уже такого авто
+            if (currentVehicles.contains(newVehicle)) {
+                snackbarHostState.showSnackbar("Этот автомобиль уже добавлен")
+                return
+            }
+
+            //Добавляем новый автомобиль
+            val updatedVehicles = currentVehicles.toMutableList().apply { add(newVehicle) }
+
+            //Сохраняем обновленный список
+            userRef.child("vehicles").setValue(updatedVehicles).await()
+
+            newVehicle = ""
+            snackbarHostState.showSnackbar("Автомобиль добавлен")
+        } catch (e: Exception) {
+            snackbarHostState.showSnackbar("Ошибка: ${e.message}")
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        vehiclesRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val vehicles = userVehicles.toMutableList() // Сохраняем текущие значения
+                snapshot.children.forEach { child ->
+                    child.getValue(String::class.java)?.let { newVehicle ->
+                        if (!vehicles.contains(newVehicle)) { // Проверяем, нет ли уже такого авто
+                            vehicles.add(newVehicle)
+                        }
+                    }
+                }
+                userVehicles = vehicles
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = "Ошибка загрузки данных: ${error.message}",
+                        duration = SnackbarDuration.Short
+                    )
+                }
+            }
+        })
+    }
+
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
@@ -35,7 +157,6 @@ fun MainScreen(navController: NavController){
         // Получаем размеры всего доступного экрана
         val boxWidth = this.maxWidth
         val boxHeight = this.maxHeight
-
 
         //кнопка добавить заправку
         Box(
@@ -50,19 +171,454 @@ fun MainScreen(navController: NavController){
         ) {
             Box(
                 modifier = Modifier
-                    .size(boxWidth / 10 * 4, boxHeight / 18 * 1)
+                    .size(boxWidth / 10 * 8, boxHeight / 18 * 1)
                     .background(color = CustomCarpiBlue, shape =  RoundedCornerShape(15.dp))
+                    .clickable{ showRefuelDialog = true }
 
             ){
                 Text(
                     text = "Добавить заправку",
                     modifier = Modifier
-                        .align(Alignment.Center)
-                        .clickable { navController.navigate("EnterScreen") },
+                        .align(Alignment.Center),
                     color = CustomTrafficWhite,
                     fontFamily = segoe_ui,
                     fontSize = 16.sp
                 )
+            }
+        }
+
+        // Кастомный диалог
+        if (showRefuelDialog) {
+            Dialog(
+                onDismissRequest = { showRefuelDialog = false },
+                properties = DialogProperties(
+                    usePlatformDefaultWidth = false,
+                    dismissOnClickOutside = true
+                )
+            ) {
+                BoxWithConstraints(
+                    modifier = Modifier
+                        .background(
+                            color = CustomTrafficWhite,
+                            shape = RoundedCornerShape(15.dp)
+                        )
+                ) {
+                    val dialogWidth = this.maxWidth * 0.5f
+                    val dialogHeight = this.maxHeight * 0.5f
+
+                    Box(
+                        modifier = Modifier
+                            .requiredSize(dialogWidth, dialogHeight)
+                            .background(CustomTrafficWhite)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(
+                                    start = 12.dp,
+                                    end = 12.dp,
+                                    top = 12.dp,
+                                    bottom = dialogHeight / 21 * 10 + 12.dp
+                                )
+                                .background(color = CustomTrafficWhite)
+                        ){
+                            Box(
+                                modifier = Modifier
+                                    .border(1.dp, color = CustomDeepOrange, shape = RoundedCornerShape(15.dp))
+                                    .background(color = CustomTrafficWhite)
+                            ){
+                                // поле для выбора авто
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(
+                                            top = dialogHeight / 21 * 1,
+                                            start = dialogWidth / 11 * 3,
+                                            end = dialogWidth / 11 * 3,
+                                            bottom = dialogHeight / 21 * 9
+                                        )
+                                ){
+                                    Box(
+                                        modifier = Modifier
+                                            .background(CustomTurquoiseBlue, shape = RoundedCornerShape(15.dp))
+                                            .requiredSize(dialogWidth / 11 * 5, dialogHeight / 21 * 1)
+                                    ) {
+                                        Text(
+                                            text = "Номер авто ≡",
+                                            modifier = Modifier
+                                                .align(Alignment.Center),
+                                            color = CustomTrafficWhite,
+                                            fontFamily = segoe_ui,
+                                            fontSize = 12.sp
+                                        )
+                                    }
+                                }
+                                // поле для ввода даты
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(
+                                            top = dialogHeight / 21 * 3,
+                                            start = dialogWidth / 11 * 1,
+                                            end = dialogWidth / 11 * 1,
+                                            bottom = dialogHeight / 21 * 7
+                                        )
+                                ){
+                                    Box(
+                                        modifier = Modifier
+                                            .requiredSize(dialogWidth / 11 * 9, dialogHeight/21 * 1)
+                                            .background(CustomEnterBarColor, shape = RoundedCornerShape(15.dp))
+                                    ){
+                                            //плейсхолдер
+                                            BasicTextField(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .align(Alignment.Center)
+                                                    .onFocusChanged { focusState -> isFocusedDate = focusState.isFocused },
+                                                value = date,
+                                                onValueChange = { newText ->
+                                                    // Ограничиваем длину даты пароля до 10 символов
+                                                    if (newText.length <= 10) {
+                                                        date = newText
+                                                    }
+                                                },
+                                                textStyle = TextStyle(
+                                                    color = CustomGrey,
+                                                    fontSize = 12.sp,
+                                                    textAlign = TextAlign.Center
+                                                ),
+                                                cursorBrush = Brush.verticalGradient(
+                                                    colors = listOf(
+                                                        CustomGrey.copy(alpha = 0.5f),
+                                                        CustomGrey.copy(alpha = 0.5f)
+                                                    ),
+                                                    startY = 0f,
+                                                    endY = 12f
+                                                ),
+                                                decorationBox = { innerTextField ->
+                                                    Box(
+                                                        modifier = Modifier.fillMaxSize(),
+                                                        contentAlignment = Alignment.Center // Центрируем содержимое
+                                                    ) {
+                                                        if (date.isEmpty() && !isFocusedDate) {
+                                                            Text(
+                                                                text = "дата: xx.xx.xxxx",
+                                                                modifier = Modifier.alpha(0.5f),
+                                                                color = CustomGrey,
+                                                                fontFamily = segoe_ui,
+                                                                fontSize = 12.sp,
+                                                                textAlign = TextAlign.Center // Центрируем плейсхолдер
+                                                            )
+                                                        }
+                                                        innerTextField()
+                                                    }
+                                                }
+                                            )
+                                    }
+                                }
+                                // поле для ввода объема
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(
+                                            top = dialogHeight / 21 * 5,
+                                            start = dialogWidth / 11 * 1,
+                                            end = dialogWidth / 11 * 1,
+                                            bottom = dialogHeight / 21 * 5
+                                        )
+                                ){
+                                    Box(
+                                        modifier = Modifier
+                                            .requiredSize(dialogWidth / 11 * 9, dialogHeight/21 * 1)
+                                            .background(CustomEnterBarColor, shape = RoundedCornerShape(15.dp))
+                                    ){
+                                        //плейсхолдер
+                                        BasicTextField(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .align(Alignment.Center)
+                                                .onFocusChanged { focusState -> isFocusedVolume = focusState.isFocused },
+                                            value = volume,
+                                            onValueChange = { newText ->
+                                                // Ограничиваем длину объема пароля до 10 символов
+                                                if (newText.length <= 10) {
+                                                    volume = newText
+                                                }
+                                            },
+                                            textStyle = TextStyle(
+                                                color = CustomGrey,
+                                                fontSize = 12.sp,
+                                                textAlign = TextAlign.Center
+                                            ),
+                                            cursorBrush = Brush.verticalGradient(
+                                                colors = listOf(
+                                                    CustomGrey.copy(alpha = 0.5f),
+                                                    CustomGrey.copy(alpha = 0.5f)
+                                                ),
+                                                startY = 0f,
+                                                endY = 12f
+                                            ),
+                                            decorationBox = { innerTextField ->
+                                                Box(
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    contentAlignment = Alignment.Center // Центрируем содержимое
+                                                ) {
+                                                    if (volume.isEmpty() && !isFocusedVolume) {
+                                                        Text(
+                                                            text = "объем в литрах",
+                                                            modifier = Modifier.alpha(0.5f),
+                                                            color = CustomGrey,
+                                                            fontFamily = segoe_ui,
+                                                            fontSize = 12.sp,
+                                                            textAlign = TextAlign.Center // Центрируем плейсхолдер
+                                                        )
+                                                    }
+                                                    innerTextField()
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                                // поле для ввода суммы
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(
+                                            top = dialogHeight / 21 * 7,
+                                            start = dialogWidth / 11 * 1,
+                                            end = dialogWidth / 11 * 1,
+                                            bottom = dialogHeight / 21 * 3
+                                        )
+                                ){
+                                    Box(
+                                        modifier = Modifier
+                                            .requiredSize(dialogWidth / 11 * 9, dialogHeight/21 * 1)
+                                            .background(CustomEnterBarColor, shape = RoundedCornerShape(15.dp))
+                                    ){
+                                        //плейсхолдер
+                                        BasicTextField(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .align(Alignment.Center)
+                                                .onFocusChanged { focusState -> isFocusedSum = focusState.isFocused },
+                                            value = sum,
+                                            onValueChange = { newText ->
+                                                // Ограничиваем длину объема пароля до 10 символов
+                                                if (newText.length <= 10) {
+                                                    sum = newText
+                                                }
+                                            },
+                                            textStyle = TextStyle(
+                                                color = CustomGrey,
+                                                fontSize = 12.sp,
+                                                textAlign = TextAlign.Center
+                                            ),
+                                            cursorBrush = Brush.verticalGradient(
+                                                colors = listOf(
+                                                    CustomGrey.copy(alpha = 0.5f),
+                                                    CustomGrey.copy(alpha = 0.5f)
+                                                ),
+                                                startY = 0f,
+                                                endY = 12f
+                                            ),
+                                            decorationBox = { innerTextField ->
+                                                Box(
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    contentAlignment = Alignment.Center // Центрируем содержимое
+                                                ) {
+                                                    if (sum.isEmpty() && !isFocusedSum) {
+                                                        Text(
+                                                            text = "сумма",
+                                                            modifier = Modifier.alpha(0.5f),
+                                                            color = CustomGrey,
+                                                            fontFamily = segoe_ui,
+                                                            fontSize = 12.sp,
+                                                            textAlign = TextAlign.Center // Центрируем плейсхолдер
+                                                        )
+                                                    }
+                                                    innerTextField()
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                                // кнопка добавить заправку
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(
+                                            top = dialogHeight / 21 * 9 - 4.dp,
+                                            start = dialogWidth / 11 * 1,
+                                            end = dialogWidth / 11 * 1,
+                                            bottom = dialogHeight / 21 * 1 + 4.dp
+                                        )
+                                ){
+                                    Box(
+                                        modifier = Modifier
+                                            .requiredSize(dialogWidth / 11 * 9, dialogHeight/21 * 1)
+                                            .background(CustomCarpiBlue, shape = RoundedCornerShape(15.dp))
+                                    ){
+                                        Text(
+                                            text = "Добавить заправку",
+                                            modifier = Modifier.align(Alignment.Center),
+                                            color = CustomTrafficWhite,
+                                            fontFamily = segoe_ui,
+                                            fontSize = 12.sp
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(
+                                    start = 12.dp,
+                                    end = 12.dp,
+                                    top = dialogHeight/ 21 * 12,
+                                    bottom = 12.dp
+                                )
+                        ){
+                            Box(
+                                modifier = Modifier
+                                    .size(dialogWidth / 11 * 11, dialogHeight / 21 * 9)
+                                    .border(1.dp, color = CustomDeepOrange, shape = RoundedCornerShape(15.dp))
+
+                            ){
+                                // кнопка добавить автомобиль
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(
+                                            top = dialogHeight / 21 * 1,
+                                            start = dialogWidth / 11 * 8,
+                                            end = dialogWidth / 11 * 1,
+                                            bottom = dialogHeight / 21 * 7
+                                        )
+                                ){
+                                    Box(
+                                        modifier = Modifier
+                                            .requiredSize(dialogWidth / 11 * 1 + 2.dp, dialogHeight/21 * 1)
+                                            .background(CustomCarpiBlue, shape = RoundedCornerShape(15.dp))
+                                            .clickable{
+                                                if (!newVehicle.isEmpty() || newVehicle.length == 6){
+                                                    coroutineScope.launch {
+                                                        addUserVehicle()
+                                                    }
+                                                } else {
+                                                    coroutineScope.launch {
+                                                        snackbarHostState.showSnackbar(
+                                                            "Необходимо указать номер авто в фромате: AA888A",
+                                                            duration = SnackbarDuration.Short
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                    ){
+                                        Text(
+                                            text = "＋",
+                                            modifier = Modifier.align(Alignment.Center),
+                                            color = CustomTrafficWhite,
+                                            fontFamily = segoe_ui,
+                                            fontSize = 12.sp
+                                        )
+                                    }
+                                }
+                                // поле для записи нового авто
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(
+                                            top = dialogHeight / 21 * 1,
+                                            start = dialogWidth / 11 * 1,
+                                            end = dialogWidth / 11 * 3,
+                                            bottom = dialogHeight / 21 * 7
+                                        )
+                                ){
+                                    Box(
+                                        modifier = Modifier
+                                            .requiredSize(dialogWidth / 11 * 7, dialogHeight/21 * 1)
+                                            .background(CustomEnterBarColor, shape = RoundedCornerShape(15.dp))
+                                    ){
+                                        //плейсхолдер
+                                        BasicTextField(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .align(Alignment.Center)
+                                                .onFocusChanged { focusState -> isFocusedNewVehicle = focusState.isFocused },
+                                            value = newVehicle,
+                                            onValueChange = { newText ->
+                                                // Ограничиваем длину объема пароля до 10 символов
+                                                if (newText.length <= 10) {
+                                                    newVehicle = newText
+                                                }
+                                            },
+                                            textStyle = TextStyle(
+                                                color = CustomGrey,
+                                                fontSize = 12.sp,
+                                                textAlign = TextAlign.Center
+                                            ),
+                                            cursorBrush = Brush.verticalGradient(
+                                                colors = listOf(
+                                                    CustomGrey.copy(alpha = 0.5f),
+                                                    CustomGrey.copy(alpha = 0.5f)
+                                                ),
+                                                startY = 0f,
+                                                endY = 12f
+                                            ),
+                                            decorationBox = { innerTextField ->
+                                                Box(
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    contentAlignment = Alignment.Center // Центрируем содержимое
+                                                ) {
+                                                    if (newVehicle.isEmpty() && !isFocusedNewVehicle) {
+                                                        Text(
+                                                            text = "новый автомобиль",
+                                                            modifier = Modifier.alpha(0.5f),
+                                                            color = CustomGrey,
+                                                            fontFamily = segoe_ui,
+                                                            fontSize = 10.sp,
+                                                            textAlign = TextAlign.Center // Центрируем плейсхолдер
+                                                        )
+                                                    }
+                                                    innerTextField()
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                                // перечень автомобилей
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(
+                                            top = dialogHeight / 21 * 3,
+                                            start = dialogWidth / 11 * 1,
+                                            end = dialogWidth / 11 * 1,
+                                            bottom = dialogHeight / 21 * 1
+                                        )
+                                ){
+                                    Box(
+                                        modifier = Modifier
+                                            .requiredSize(dialogWidth/ 11 * 9, dialogHeight/21 * 5)
+                                    ){
+                                        if (userVehicles.isEmpty()){
+                                            Text(
+                                                text = "Автомобили еще не добавлены",
+                                                modifier = Modifier.align(Alignment.Center),
+                                                color = CustomGrey,
+                                                fontFamily = segoe_ui,
+                                                fontSize = 10.sp
+                                            )
+                                        } else {
+
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -141,8 +697,10 @@ fun MainScreen(navController: NavController){
                 }
             }
         }
-
-
+        androidx.compose.material3.SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.TopCenter) // Или TopCenter, если нужно сверху
+        )
     }
 }
 
