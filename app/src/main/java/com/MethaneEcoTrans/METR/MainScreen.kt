@@ -81,7 +81,7 @@ fun MainScreen(navController: NavController){
     val auth = Firebase.auth
     val database = FirebaseDatabase.getInstance("https://met-project-fdcef-default-rtdb.europe-west1.firebasedatabase.app/")
     val user = auth.currentUser
-    Log.d("userUID", "Current UID: ${user?.uid ?: "null"}")
+    Log.d("MainScreen", "Current UID: ${user?.uid ?: "null"}")
     val vehiclesRef = database.getReference("users").child(user?.uid.toString()).child("vehicles")
 
     // Отслеживание состояний
@@ -91,9 +91,6 @@ fun MainScreen(navController: NavController){
     var userVehicles by remember { mutableStateOf<List<String>>(emptyList()) }
     var newVehicle by remember { mutableStateOf("") }
     var currentVehicle by remember { mutableStateOf("") }
-    var car1 by remember { mutableStateOf("") }
-    var car2 by remember { mutableStateOf("") }
-    var car3 by remember { mutableStateOf("") }
 
     // Состояния для фокуса
     var isFocusedDate by remember { mutableStateOf(false) }
@@ -138,8 +135,8 @@ fun MainScreen(navController: NavController){
 
             // Создаем объект с данными заправки
             val refuelData = hashMapOf(
-                "volume" to volume,
-                "sum" to sum
+                "volume" to volume.toDouble(),
+                "sum" to sum.toDouble()
             )
 
             // Сохраняем данные
@@ -915,6 +912,9 @@ fun MainScreen(navController: NavController){
                                             if (description == "profile"){
                                                 navController.navigate("ProfileScreen")
                                             }
+                                            if (description == "history"){
+                                                navController.navigate("HistoryScreen")
+                                            }
                                         }
                                 )
                             }
@@ -928,11 +928,4 @@ fun MainScreen(navController: NavController){
             modifier = Modifier.align(Alignment.TopCenter) // Или TopCenter, если нужно сверху
         )
     }
-}
-
-@Composable
-@Preview(showBackground = true)
-fun PreviewMainScreen() {
-    val navController = rememberNavController()
-    MainScreen(navController)
 }

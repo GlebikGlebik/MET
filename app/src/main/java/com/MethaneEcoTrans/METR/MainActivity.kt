@@ -27,11 +27,12 @@ class MainActivity : ComponentActivity(){
         setContent {
             METTheme {
                 val navController = rememberNavController()
-                NavHost(navController, startDestination = "enterScreen"){
+                NavHost(navController, startDestination = "EnterScreen"){
                     composable("EnterScreen") { EnterScreen(navController) }
                     composable("RegistrationScreen") { RegistrationScreen(navController) }
                     composable("MainScreen") {MainScreen(navController)}
                     composable("ProfileScreen") {ProfileScreen(navController)}
+                    composable("HistoryScreen") {HistoryScreen(navController)}
                 }
 
             }
