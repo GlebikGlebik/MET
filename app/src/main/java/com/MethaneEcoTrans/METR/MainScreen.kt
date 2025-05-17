@@ -4,6 +4,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Divider
 import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.ui.unit.sp
@@ -863,58 +864,62 @@ fun MainScreen(navController: NavController){
 
             }
         }
-
-        // поле с навигацией
+        // Поле с навигацией
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    start = boxWidth / 10,
-                    end = boxWidth / 10,
-                    top = boxHeight/ 18 * 16 + 12.dp,
-                    bottom = boxHeight/ 18
+                    top = boxHeight / 18 * 16,
+                    bottom = boxHeight / 18 * 1 - 12.dp
                 )
         ){
             Box(
                 modifier = Modifier
-                    .size(boxWidth / 10 * 8, boxHeight / 18 * 1 )
-                    .border(1.dp, CustomDeepOrange, shape = RoundedCornerShape(15.dp))
-                    .background(color = CustomTrafficWhite, shape = RoundedCornerShape(15.dp))
-            ){
-                Row(
+                    .fillMaxSize()
+                    .padding(
+                        horizontal = boxWidth / 10,
+                        vertical = 12.dp
+                    )
+            ) {
+                Surface(
                     modifier = Modifier
                         .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ){
-                    Image(
-                        painter = painterResource(id = R.drawable.history_icon_1),
-                        contentDescription = "socialNetworkIcon",
+                    shape = RoundedCornerShape(15.dp),
+                    border = BorderStroke(1.dp, CustomDeepOrange),
+                    color = CustomTrafficWhite
+                ) {
+                    Row(
                         modifier = Modifier
-                            .requiredSize(boxHeight / 11),
-                        contentScale = ContentScale.Fit
-                    )
-                    Image(
-                        painter = painterResource(id = R.drawable.history_icon_1),
-                        contentDescription = "historyIcon",
-                        modifier = Modifier
-                            .requiredSize(boxHeight / 11),
-                        contentScale = ContentScale.Fit
-                    )
-                    Image(
-                        painter = painterResource(id = R.drawable.history_icon_1),
-                        contentDescription = "statisticIcon",
-                        modifier = Modifier
-                            .requiredSize(boxHeight / 11),
-                        contentScale = ContentScale.Fit
-                    )
-                    Image(
-                        painter = painterResource(id = R.drawable.history_icon_1),
-                        contentDescription = "profileIcon",
-                        modifier = Modifier
-                            .requiredSize(boxHeight / 11),
-                        contentScale = ContentScale.Fit
-                    )
+                            .fillMaxSize()
+                            .padding(horizontal = 24.dp), // Отступы по бокам
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        listOf(
+                            R.drawable.vector_telegram to "contacts",
+                            R.drawable.vector_history to "history",
+                            R.drawable.vector_profile to "profile"
+                        ).forEach { (iconRes, description) ->
+                            Box(
+                                modifier = Modifier
+                                    .size(24.dp), // Увеличиваем общий размер
+                                contentAlignment = Alignment.Center
+                            ){
+                                Image(
+                                    painter = painterResource(id = iconRes),
+                                    contentDescription = "${description}Icon",
+                                    contentScale = ContentScale.Fit,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clickable{
+                                            if (description == "profile"){
+                                                navController.navigate("ProfileScreen")
+                                            }
+                                        }
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

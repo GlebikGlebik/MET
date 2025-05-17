@@ -26,6 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material3.Surface
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
 import com.MethaneEcoTrans.METR.theme.CustomTurquoiseBlue
@@ -184,59 +185,62 @@ fun ProfileScreen(navController: NavController){
 
             }
         }
-
-
-        // поле с навигацией
+        // Поле с навигацией
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    start = boxWidth / 10,
-                    end = boxWidth / 10,
-                    top = boxHeight/ 18 * 16 + 12.dp,
-                    bottom = boxHeight/ 18
+                    top = boxHeight / 18 * 16,
+                    bottom = boxHeight / 18 * 1 - 12.dp
                 )
         ){
             Box(
                 modifier = Modifier
-                    .size(boxWidth / 10 * 8, boxHeight / 18 * 1 )
-                    .border(1.dp, CustomDeepOrange, shape = RoundedCornerShape(15.dp))
-                    .background(color = CustomTrafficWhite, shape = RoundedCornerShape(15.dp))
-            ){
-                Row(
+                    .fillMaxSize()
+                    .padding(
+                        horizontal = boxWidth / 10,
+                        vertical = 12.dp
+                    )
+            ) {
+                Surface(
                     modifier = Modifier
                         .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ){
-                    Image(
-                        painter = painterResource(id = R.drawable.history_icon_1),
-                        contentDescription = "socialNetworkIcon",
+                    shape = RoundedCornerShape(15.dp),
+                    border = BorderStroke(1.dp, CustomDeepOrange),
+                    color = CustomTrafficWhite
+                ) {
+                    Row(
                         modifier = Modifier
-                            .requiredSize(boxHeight / 11),
-                        contentScale = ContentScale.Fit
-                    )
-                    Image(
-                        painter = painterResource(id = R.drawable.history_icon_1),
-                        contentDescription = "historyIcon",
-                        modifier = Modifier
-                            .requiredSize(boxHeight / 11),
-                        contentScale = ContentScale.Fit
-                    )
-                    Image(
-                        painter = painterResource(id = R.drawable.history_icon_1),
-                        contentDescription = "statisticIcon",
-                        modifier = Modifier
-                            .requiredSize(boxHeight / 11),
-                        contentScale = ContentScale.Fit
-                    )
-                    Image(
-                        painter = painterResource(id = R.drawable.history_icon_1),
-                        contentDescription = "profileIcon",
-                        modifier = Modifier
-                            .requiredSize(boxHeight / 11),
-                        contentScale = ContentScale.Fit
-                    )
+                            .fillMaxSize()
+                            .padding(horizontal = 24.dp), // Отступы по бокам
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        listOf(
+                            R.drawable.vector_telegram to "contacts",
+                            R.drawable.vector_history to "history",
+                            R.drawable.vector_profile to "profile"
+                        ).forEach { (iconRes, description) ->
+                            Box(
+                                modifier = Modifier
+                                    .size(24.dp), // Увеличиваем общий размер
+                                contentAlignment = Alignment.Center
+                            ){
+                                Image(
+                                    painter = painterResource(id = iconRes),
+                                    contentDescription = "${description}Icon",
+                                    contentScale = ContentScale.Fit,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clickable{
+                                            if (description == "profile"){
+                                                navController.navigate("ProfileScreen")
+                                            }
+                                        }
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
