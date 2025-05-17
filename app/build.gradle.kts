@@ -45,7 +45,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -71,7 +70,7 @@ dependencies {
     implementation("androidx.compose.material:material:1.8.1")
     implementation("androidx.navigation:navigation-compose:2.9.0")
     implementation("androidx.compose.material3:material3:1.3.2")
-    implementation("androidx.compose.material:material:1.6.0")
+    implementation("androidx.compose.material:material:1.8.1")
     //firebase
     implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
     implementation("com.google.firebase:firebase-auth:23.2.0")
@@ -84,5 +83,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
     //realtimeDatabase
     implementation("com.google.firebase:firebase-database:21.0.0")
+    // графики
+    implementation("com.github.madrapps:plot:0.1.1")
 
 }
