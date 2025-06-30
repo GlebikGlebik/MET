@@ -1,49 +1,53 @@
 package com.MethaneEcoTrans.METR
 
 import android.util.Log
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Text
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.sp
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.draw.alpha
-import androidx.compose.foundation.clickable
-import androidx.navigation.NavController
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.compose.rememberNavController
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
-import androidx.compose.ui.res.painterResource
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
-import com.MethaneEcoTrans.METR.theme.CustomTurquoiseBlue
-import com.MethaneEcoTrans.METR.theme.CustomTrafficWhite
-import com.MethaneEcoTrans.METR.theme.CustomCarpiBlue
-import com.MethaneEcoTrans.METR.theme.CustomDeepOrange
-import com.MethaneEcoTrans.METR.theme.CustomEnterBarColor
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.MethaneEcoTrans.METR.theme.CustomGrey
+import com.MethaneEcoTrans.METR.theme.CustomTrafficWhite
+import com.MethaneEcoTrans.METR.theme.CustomTurquoiseBlue
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -51,9 +55,8 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import kotlin.text.ifEmpty
+import java.util.Calendar
 
 @Composable
 fun ProfileScreen(navController: NavController){
@@ -88,11 +91,46 @@ fun ProfileScreen(navController: NavController){
         var userHistory by remember {
             mutableStateOf<Map<String, Map<String, Map<String, Double>>>>(emptyMap())
         }
+        var userName by remember { mutableStateOf("") }
+        var userSurname by remember { mutableStateOf("") }
 
         // переменные ранспорта
         var currentVehicle by remember { mutableStateOf("") }
         var userVehicles by remember { mutableStateOf<List<String>>(emptyList()) }
         val vehiclesRef = database.getReference("users").child(user?.uid.toString()).child("vehicles")
+        val userNameRef = database.getReference("users").child(user?.uid.toString()).child("name")
+        val userSurnameRef = database.getReference("users").child(user?.uid.toString()).child("surname")
+
+
+        // Добавляем состояния для хранения сумм
+        var totalFuel by remember { mutableStateOf(0.0) }
+        var totalSum by remember { mutableStateOf(0.0) }
+
+        // Состояния для хранения сравнения месяцев
+        var currentMonthStats by remember { mutableStateOf(Pair(0.0, 0.0)) } // (volume, sum)
+        var previousMonthStats by remember { mutableStateOf(Pair(0.0, 0.0)) }
+        var monthlyComparison by remember { mutableStateOf(Pair(0.0, 0.0)) } // (volumeDiff, sumDiff)
+
+        // Получение данных пользователя
+        LaunchedEffect(Unit) {
+            userNameRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    userName = snapshot.getValue(String::class.java) ?: ""
+                }
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("ProfileScreen", "Error loading name: ${error.message}")
+                }
+            })
+
+            userSurnameRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    userSurname = snapshot.getValue(String::class.java) ?: ""
+                }
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("ProfileScreen", "Error loading surname: ${error.message}")
+                }
+            })
+        }
 
         LaunchedEffect(Unit) {
             vehiclesRef.addValueEventListener(object : ValueEventListener {
@@ -142,7 +180,6 @@ fun ProfileScreen(navController: NavController){
 
                             historyMap[vehicleName] = datesMap
                         }
-
                         userHistory = historyMap
                     }
 
@@ -174,17 +211,150 @@ fun ProfileScreen(navController: NavController){
                 .sortedByDescending { it.first }
                 .take(6)
         }
-        
 
+        // Эффект для подсчета сумм при изменении истории или выбранного автомобиля
+        LaunchedEffect(userHistory, currentVehicle) {
+            var fuel = 0.0
+            var sum = 0.0
+
+            // Проверяем, что автомобиль выбран
+            if (currentVehicle.isNotBlank()) {
+                userHistory[currentVehicle]?.forEach { (_, data) ->
+                    fuel += data["volume"] ?: 0.0
+                    sum += data["sum"] ?: 0.0
+                }
+            }
+
+            totalFuel = fuel
+            totalSum = sum
+
+            // Логируем для отладки
+            Log.d("ProfileScreen", "Total for $currentVehicle: fuel=$fuel, sum=$sum")
+        }
+
+        LaunchedEffect(userHistory, currentVehicle) {
+            val currentMonth = Calendar.getInstance().get(Calendar.MONTH) + 1 // +1 т.к. месяцы с 0
+            val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+            val prevMonth = if (currentMonth == 1) 12 else currentMonth - 1
+            val prevYear = if (currentMonth == 1) currentYear - 1 else currentYear
+
+            var currentVol = 0.0
+            var currentSm = 0.0
+            var prevVol = 0.0
+            var prevSm = 0.0
+
+            if (currentVehicle.isNotBlank()) {
+                userHistory[currentVehicle]?.forEach { (dateStr, data) ->
+                    val parts = dateStr.split(";")
+                    if (parts.size == 3) {
+                        val day = parts[0].toIntOrNull() ?: 0
+                        val month = parts[1].toIntOrNull() ?: 0
+                        val year = parts[2].toIntOrNull() ?: 0
+
+                        when {
+                            // Текущий месяц
+                            month == currentMonth && year == currentYear -> {
+                                currentVol += data["volume"] ?: 0.0
+                                currentSm += data["sum"] ?: 0.0
+                            }
+                            // Прошлый месяц
+                            month == prevMonth && year == prevYear -> {
+                                prevVol += data["volume"] ?: 0.0
+                                prevSm += data["sum"] ?: 0.0
+                            }
+                        }
+                    }
+                }
+            }
+
+            currentMonthStats = Pair(currentVol, currentSm)
+            previousMonthStats = Pair(prevVol, prevSm)
+            monthlyComparison = Pair(currentVol - prevVol, currentSm - prevSm)
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(
+                    top = boxHeight/19 * 1,
+                    bottom = boxHeight/19 * 16,
+                    start = boxWidth / 10 * 3 + 12.dp,
+                    end = boxWidth / 10 * 3
+                )
+        ){
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+            ){
+                Text(
+                    text = "$userSurname $userName",
+                    color = CustomGrey,
+                    fontFamily = segoe_ui,
+                    fontSize = 14.sp,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(
+                    top = boxHeight/19 * 1,
+                    bottom = boxHeight/19 * 15 + 12.dp,
+                    start = boxWidth / 10 - 12.dp,
+                    end = boxWidth / 10 * 7 - 12.dp
+                )
+        ){
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .border(2.dp, CustomTurquoiseBlue, RoundedCornerShape(15.dp))
+            ){
+                Image(
+                    painter = painterResource(R.drawable.vector_profile),
+                    contentDescription = "profileIcon",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .align(Alignment.Center)
+                )
+            }
+
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(
+                    top = boxHeight/19 * 9,
+                    bottom = boxHeight/19 * 9 + 12.dp,
+                    start = boxWidth / 10,
+                    end = boxWidth / 10
+                )
+        ){
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .border(1.dp, CustomTurquoiseBlue, RoundedCornerShape(15.dp))
+            ) {
+                Text(
+                    text = "За все время вы потратили ${"%.1f".format(totalFuel)} л. и ${"%.2f".format(totalSum)} р.",
+                    color = CustomGrey,
+                    fontFamily = segoe_ui,
+                    fontSize = 12.sp,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+        }
         // поле с предварительной историей
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    top = boxHeight/19 * 10 - 12.dp,
+                    top = boxHeight/19 * 10,
                     bottom = boxHeight/19 * 2,
                     start = boxWidth / 10,
-                    end = boxWidth / 10 + 12.dp
+                    end = boxWidth / 10
                 )
         ){
             Box(
@@ -409,7 +579,7 @@ fun ProfileScreen(navController: NavController){
                     modifier = Modifier
                         .fillMaxWidth(),
                     shape = RoundedCornerShape(15.dp),
-                    border = BorderStroke(1.dp, CustomDeepOrange),
+                    border = BorderStroke(2.dp, CustomTurquoiseBlue),
                     color = CustomTrafficWhite
                 ) {
                     Row(
