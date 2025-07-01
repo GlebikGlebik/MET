@@ -41,3 +41,10 @@ class MainActivity : ComponentActivity(){
 
 }
 
+fun isDateValid(date: String): Boolean {
+    val regex = """^(0[1-9]|[12][0-9]|3[01])\.(0[1-9]|1[012])\.\d{4}$""".toRegex()
+    return date.matches(regex)
+}
+
+
+
